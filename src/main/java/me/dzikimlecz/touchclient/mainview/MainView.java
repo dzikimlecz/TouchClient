@@ -4,14 +4,11 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Objects;
+import static java.util.Objects.requireNonNull;
 
 public class MainView {
-
-
-
     @NotNull
     public static Parent create() throws Exception {
-        return FXMLLoader.load(Objects.requireNonNull(MainView.class.getResource("main-view.fxml")));
+        return FXMLLoader.load(requireNonNull(MainView.class.getResource("main-view.fxml")));
     }
 }
