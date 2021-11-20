@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/11.0.2" xmlns:fx="http://javafx.com/fxml/1" fx:controller="me.dzikimlecz.touchclient.mainview.MessagesView">
+   <center>
+      <StackPane prefWidth="400.0">
+         <ListView fx:id="messagesList" prefWidth="200.0" />
+      </StackPane>
+   </center>
+   <bottom>
+      <BorderPane BorderPane.alignment="CENTER">
+         <center>
+            <TextArea fx:id="messageArea" prefHeight="51.0" prefWidth="400.0" />
+         </center>
+         <right>
+            <Button alignment="CENTER" maxHeight="1.7976931348623157E308" mnemonicParsing="false" onAction="#sendMessage" text="Send" BorderPane.alignment="CENTER" />
+         </right>
+      </BorderPane>
+   </bottom>
+</BorderPane>
