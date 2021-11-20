@@ -1,18 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
-<?import java.util.*?>
-<?import javafx.scene.*?>
-<?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<BorderPane xmlns="http://javafx.com/javafx"
-            xmlns:fx="http://javafx.com/fxml"
-            fx:controller="me.dzikimlecz.touchclient.mainview.MainView"
-            prefHeight="400.0" prefWidth="600.0">
+<BorderPane prefHeight="400.0" prefWidth="601.0" xmlns="http://javafx.com/javafx/11.0.2" xmlns:fx="http://javafx.com/fxml/1" fx:controller="me.dzikimlecz.touchclient.mainview.MainView">
     <left>
-        <fx:include source="chatlist-view.fxml"/>
+        <fx:include source="chatlist-view.fxml" />
     </left>
+    <center>
+        <fx:include source="messages-view.fxml" />
+    </center>
 
 
 </BorderPane>
