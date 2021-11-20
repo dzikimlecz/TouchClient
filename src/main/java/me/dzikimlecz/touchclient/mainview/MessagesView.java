@@ -125,4 +125,8 @@ public class MessagesView implements Initializable {
             }
         };
     }
+
+    public void setMessageSender(MessageSender messageSender) {
+        this.messageSender = messageSender;
+    }
 }
