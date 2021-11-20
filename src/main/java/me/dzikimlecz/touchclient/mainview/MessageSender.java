@@ -2,6 +2,7 @@ package me.dzikimlecz.touchclient.mainview;
 
 import me.dzikimlecz.touchclient.model.Message;
 
-public interface MessageManager {
+@FunctionalInterface
+public interface MessageSender {
     void send(Message msg);
 }

@@ -36,7 +36,7 @@ public class MessagesView implements Initializable {
     private final SimpleObjectProperty<UserProfile> userProfile;
     private final SimpleObjectProperty<UserProfile> recipientProfile;
 
-    private MessageManager messageManager;
+    private MessageSender messageSender;
 
     public void setUserProfile(UserProfile profile) {
         userProfile.set(profile);
@@ -51,37 +51,13 @@ public class MessagesView implements Initializable {
         recipientProfile = new SimpleObjectProperty<>();
     }
 
-
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         messagesList.setSelectionModel(NoSelectionModel.getInstance());
         messagesList.setCellFactory(this::messagesCellFactory);
-
-        setUserProfile(UserProfile.of("NeverSeenCatOOO", 5318008));
-        setRecipientProfile(UserProfile.of("LilPope", 2137));
-        injectMessages(List.of(
-                new Message(
-                        UserProfile.of("LilPope", 2137),
-                        UserProfile.of("NeverSeenCatOOO", 5318008),
-                        "I'm Bored",
-                        now().minusMinutes(3)
-                ),
-                new Message(
-                        UserProfile.of("LilPope", 2137),
-                        UserProfile.of("NeverSeenCatOOO", 5318008),
-                        "Come Over",
-                        now().minusMinutes(2)
-                ),
-                new Message(
-                        UserProfile.of("NeverSeenCatOOO", 5318008),
-                        UserProfile.of("LilPope", 2137),
-                        "No",
-                        now().minusMinutes(1)
-                )
-        ));
     }
 
-    public void injectMessages(@NotNull List<Message> messages) {
+    public void setMessages(@NotNull List<Message> messages) {
         final var items = observableArrayList(messages);
         items.sort(comparing(Message::getSentOn));
         messagesList.setItems(items);
@@ -89,6 +65,13 @@ public class MessagesView implements Initializable {
 
     public void addMessage(@NotNull Message msg) {
         messagesList.getItems().add(msg);
+        messagesList.getItems().sort(comparing(Message::getSentOn));
+    }
+
+    public final void addMessages(@NotNull Message msg, Message... messages) {
+        messagesList.getItems().add(msg);
+        if (messages != null)
+            messagesList.getItems().addAll(messages);
         messagesList.getItems().sort(comparing(Message::getSentOn));
     }
 
@@ -111,8 +94,8 @@ public class MessagesView implements Initializable {
     protected void sendMessage(ActionEvent __) {
         final String value = getValue();
         final var msg = createMessage(value);
-        if (messageManager != null)
-            messageManager.send(msg);
+        if (messageSender != null)
+            messageSender.send(msg);
         addMessage(msg);
     }
 
@@ -143,5 +126,3 @@ public class MessagesView implements Initializable {
         };
     }
 }
-
-;
