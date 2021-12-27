@@ -1,13 +1,14 @@
 package me.dzikimlecz.touchclient.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
 public final class UserProfile {
-    private final String username;
-    private final long userTag;
+    private String username;
+    private long userTag;
 
     public String getUsername() {
         return username;
@@ -18,12 +19,30 @@ public final class UserProfile {
     }
 
     @Contract(pure = true)
+    @JsonIgnore
     public @NotNull String getNameTag() {
         return username + '#' + userTag;
     }
 
+    @Contract(pure = true)
+    @JsonIgnore
+    public @NotNull String getUriNameTag() {
+        return username + '_' + userTag;
+    }
+
     private UserProfile(@NotNull String username, long userTag) {
         this.username = username;
+        this.userTag = userTag;
+    }
+
+    public UserProfile() {
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public void setUserTag(long userTag) {
         this.userTag = userTag;
     }
 
