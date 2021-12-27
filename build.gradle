@@ -2,6 +2,7 @@ plugins {
     id 'java'
     id 'application'
     id 'org.openjfx.javafxplugin' version '0.0.10'
+    id "org.moditect.gradleplugin" version "1.0.0-rc3"
 }
 
 group 'me.dzikimlecz'
@@ -37,11 +38,23 @@ dependencies {
     implementation('com.dlsc.formsfx:formsfx-core:11.4.2') {
         exclude(group: 'org.openjfx')
     }
-    implementation('net.synedra:validatorfx:0.1.13') {
+    implementation('net.synedra:validatorfx:0.1.14') {
         exclude(group: 'org.openjfx')
     }
-    implementation 'io.github.cdimascio:dotenv-java:2.2.0'
-    implementation 'org.jetbrains:annotations:20.1.0'
+
+//    implementation 'io.github.cdimascio:dotenv-java:2.2.0'
+    implementation files('C:\\dev\\TouchClient\\build\\modules\\dotenv-java-2.2.0.jar')
+    implementation 'org.jetbrains:annotations:22.0.0'
+
+    implementation group: 'com.github.corese4rch', name: 'cvurl-io', version: '1.5'
+
+//    implementation group: 'org.slf4j', name: 'slf4j-api', version: '1.7.32'
+    implementation files('C:\\dev\\TouchClient\\build\\modules\\slf4j-api-1.7.32.jar')
+
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.12.4'
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: '2.12.4'
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.12.4'
+    implementation group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310'
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:${junitVersion}")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
@@ -50,3 +63,28 @@ dependencies {
 test {
     useJUnitPlatform()
 }
+
+//moditect {
+//    addDependenciesModuleInfo {
+//        jdepsExtraArgs = ['-q', '--multi-release', '9']
+//        overwriteExistingFiles = true
+//        modules {
+//            module {
+//                artifact 'io.github.cdimascio:dotenv-java:2.2.0'
+//                moduleInfoSource = '''
+//                module dotenv.java {
+//                    exports io.github.cdimascio.dotenv;
+//                }
+//            '''
+//            }
+//            module {
+//                artifact 'org.slf4j:slf4j-api:1.7.32'
+//                moduleInfoSource = '''
+//                module org.slf4j {
+//                    exports org.slf4j;
+//                }
+//            '''
+//            }
+//        }
+//    }
+//    }
