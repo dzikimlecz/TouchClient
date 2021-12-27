@@ -4,6 +4,7 @@ import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
+import me.dzikimlecz.touchclient.config.Env;
 import me.dzikimlecz.touchclient.mainview.MainView;
 
 import static java.util.Objects.requireNonNull;
@@ -12,6 +13,7 @@ public class TouchApp extends Application {
 
     @Override
     public void init() {
+        Env.load();
     }
 
     @Override
