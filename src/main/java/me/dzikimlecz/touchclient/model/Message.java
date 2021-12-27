@@ -5,26 +5,26 @@ import org.jetbrains.annotations.NotNull;
 
 import java.time.LocalDateTime;
 
-public final class Message {
+public class Message {
     public UserProfile getSender() {
         return sender;
     }
-    private final UserProfile sender;
+    private UserProfile sender;
 
     public UserProfile getRecipient() {
         return recipient;
     }
-    private final UserProfile recipient;
+    private UserProfile recipient;
 
     public String getContent() {
         return content;
     }
-    private final String content;
+    private String content;
 
     public LocalDateTime getSentOn() {
         return sentOn;
     }
-    private final LocalDateTime sentOn;
+    private LocalDateTime sentOn;
 
     public Message(
             @NotNull UserProfile sender,
@@ -37,6 +37,25 @@ public final class Message {
         if (content.isEmpty())
             throw new IllegalArgumentException("Content of the message can't be empty.");
         this.content = content;
+    }
+
+    public Message() {
+    }
+
+    public void setSender(@NotNull UserProfile sender) {
+        this.sender = sender;
+    }
+
+    public void setRecipient(@NotNull UserProfile recipient) {
+        this.recipient = recipient;
+    }
+
+    public void setContent(@NotNull String content) {
+        this.content = content;
+    }
+
+    public void setSentOn(@NotNull LocalDateTime sentOn) {
+        this.sentOn = sentOn;
     }
 
     @Override
@@ -71,4 +90,10 @@ public final class Message {
                 ", content='" + content + '\'' +
                 '}';
     }
+
+    public static final Message EMPTY = new Message() {
+        @Override public boolean equals(Object o) {
+            return o == this;
+        }
+    };
 }
