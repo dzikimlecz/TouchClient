@@ -10,6 +10,7 @@ import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
 import me.dzikimlecz.touchclient.model.Message;
+import me.dzikimlecz.touchclient.model.MessagesHandler;
 import me.dzikimlecz.touchclient.model.UserProfile;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -33,10 +34,13 @@ public class MessagesView implements Initializable {
     @FXML
     public TextArea messageArea;
 
-    private final SimpleObjectProperty<UserProfile> userProfile;
-    private final SimpleObjectProperty<UserProfile> recipientProfile;
+    private final SimpleObjectProperty<UserProfile> userProfile = new SimpleObjectProperty<>();
+    private final SimpleObjectProperty<UserProfile> recipientProfile = new SimpleObjectProperty<>();
+    private final AtomicInteger loaded = new AtomicInteger();
 
     private MessageSender messageSender;
+
+    private MessagesHandler messagesHandler;
 
     public void setUserProfile(UserProfile profile) {
         userProfile.set(profile);
@@ -128,5 +132,13 @@ public class MessagesView implements Initializable {
 
     public void setMessageSender(MessageSender messageSender) {
         this.messageSender = messageSender;
+    }
+
+    public MessagesHandler getMessagesHandler() {
+        return messagesHandler;
+    }
+
+    public void setMessagesHandler(MessagesHandler messagesHandler) {
+        this.messagesHandler = messagesHandler;
     }
 }

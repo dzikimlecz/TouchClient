@@ -7,23 +7,20 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.layout.BorderPane;
 import javafx.util.Pair;
-import me.dzikimlecz.touchclient.model.Message;
+import me.dzikimlecz.touchclient.model.MessagesHandler;
 import me.dzikimlecz.touchclient.model.UserProfile;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.List;
-import java.util.ResourceBundle;
+import java.util.*;
 
-import static java.time.LocalDateTime.now;
 import static java.util.Objects.requireNonNull;
 
 public class MainView implements Initializable {
 
     @FXML
     public BorderPane root;
-    private MessagesView messagesView;
 
     @NotNull
     public static Parent create() throws Exception {
@@ -34,40 +31,17 @@ public class MainView implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         final var nodeController =
                 loadAndGetController(getClass().getResource("messages-view.fxml"));
-        messagesView = nodeController.getValue();
+        MessagesView messagesView = nodeController.getValue();
+        messagesView.setMessagesHandler(new MessagesHandler(getUserProfile()));
         root.setCenter(nodeController.getKey());
         messagesView.setUserProfile(getUserProfile());
+        //todo remove hard coded recipient
         messagesView.setRecipientProfile(UserProfile.of("LilPope", 2137));
-        messagesView.setMessages(loadMessages());
     }
 
     @NotNull
     private UserProfile getUserProfile() {
         return UserProfile.of("NeverSeenCatOOO", 5318008);
-    }
-
-    @NotNull
-    private List<Message> loadMessages() {
-        return List.of(
-                new Message(
-                        UserProfile.of("LilPope", 2137),
-                        UserProfile.of("NeverSeenCatOOO", 5318008),
-                        "I'm Bored",
-                        now().minusMinutes(3)
-                ),
-                new Message(
-                        UserProfile.of("LilPope", 2137),
-                        UserProfile.of("NeverSeenCatOOO", 5318008),
-                        "Come Over",
-                        now().minusMinutes(2)
-                ),
-                new Message(
-                        UserProfile.of("NeverSeenCatOOO", 5318008),
-                        UserProfile.of("LilPope", 2137),
-                        "No",
-                        now().minusMinutes(1)
-                )
-        );
     }
 
     @NotNull
