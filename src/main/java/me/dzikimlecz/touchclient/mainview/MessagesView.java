@@ -1,6 +1,7 @@
 package me.dzikimlecz.touchclient.mainview;
 
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ChangeListener;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -18,12 +19,14 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.ResourceBundle;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.time.LocalDateTime.now;
-import static java.util.Comparator.comparing;
-import static javafx.collections.FXCollections.observableArrayList;
+import static javafx.collections.FXCollections.observableList;
 import static me.dzikimlecz.touchclient.model.message.MessageDisplayMode.AS_RECIPIENT;
 import static me.dzikimlecz.touchclient.model.message.MessageDisplayMode.AS_SENDER;
 
@@ -50,33 +53,71 @@ public class MessagesView implements Initializable {
         recipientProfile.set(profile);
     }
 
-    public MessagesView() {
-        userProfile = new SimpleObjectProperty<>();
-        recipientProfile = new SimpleObjectProperty<>();
-    }
-
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        messagesList.setItems(observableList(new LinkedList<>()));
+        //populate the list
+        for (int i = 0; i < 10; i++) messagesList.getItems().add(Message.EMPTY);
         messagesList.setSelectionModel(NoSelectionModel.getInstance());
         messagesList.setCellFactory(this::messagesCellFactory);
+        // extracted lambda to a variable, due to the need of warning suppression
+        @SuppressWarnings("unchecked")
+        final ChangeListener<UserProfile> changeListener = (obs, oldVal, newVal) -> {
+            if (newVal == null) {
+                ((SimpleObjectProperty<UserProfile>) obs).setValue(oldVal);
+                return;
+            }
+            loaded.set(0);
+            try {
+                messagesHandler.loadOlder(newVal);
+            } catch (NoSuchElementException ignore) {}
+            final var conversation = messagesHandler.getConversation(newVal, 0);
+            conversation.ifPresent(messages -> {
+                loaded.addAndGet(messages.getSize());
+                messagesList.getItems().addAll(messages.getElements());
+            });
+        };
+        recipientProfile.addListener(changeListener);
+        messagesList.setOnScrollTo(event -> {
+            if (event.getScrollTarget() <= 1) {
+                final var conversation =
+                        messagesHandler.getConversation(recipientProfile.get(), 1);
+                conversation.ifPresent(messages -> addMessages(messages.getElements()));
+            }
+        });
     }
 
-    public void setMessages(@NotNull List<Message> messages) {
-        final var items = observableArrayList(messages);
-        items.sort(comparing(Message::getSentOn));
-        messagesList.setItems(items);
+    private void setMessages(@NotNull List<Message> messages) {
+        final var items = messagesList.getItems();
+        items.clear();
+        items.addAll(messages);
+        sortMessagesList();
     }
 
-    public void addMessage(@NotNull Message msg) {
+    private void addMessage(@NotNull Message msg) {
         messagesList.getItems().add(msg);
-        messagesList.getItems().sort(comparing(Message::getSentOn));
+        sortMessagesList();
     }
 
-    public final void addMessages(@NotNull Message msg, Message... messages) {
+    private void addMessages(List<Message> messages) {
+        if (messages.isEmpty()) return;
+        messagesList.getItems().addAll(messages);
+        sortMessagesList();
+    }
+
+    private void addMessages(@NotNull Message msg, Message... messages) {
         messagesList.getItems().add(msg);
         if (messages != null)
             messagesList.getItems().addAll(messages);
-        messagesList.getItems().sort(comparing(Message::getSentOn));
+        sortMessagesList();
+    }
+
+    private void sortMessagesList() {
+        messagesList.getItems().sort((m1, m2) -> {
+            if (m1.equals(m2)) return 0;
+            if (m1 == Message.EMPTY) return -1;
+            return m1.getSentOn().compareTo(m2.getSentOn());
+        });
     }
 
     @Contract(pure = true)
@@ -95,15 +136,16 @@ public class MessagesView implements Initializable {
     }
 
     @FXML
+    @SuppressWarnings("unused")
     protected void sendMessage(ActionEvent __) {
-        final String value = getValue();
+        final String value = getTypedText();
         final var msg = createMessage(value);
         if (messageSender != null)
             messageSender.send(msg);
         addMessage(msg);
     }
 
-    private String getValue() {
+    private String getTypedText() {
         final var stringProperty = messageArea.textProperty();
         final var value = stringProperty.getValue();
         stringProperty.set("");
@@ -117,6 +159,7 @@ public class MessagesView implements Initializable {
 
     protected ListCell<Message> messagesCellFactory(ListView<Message> listView) {
         return new ListCell<>() {
+            // init block (got confused with scoping before)
             {
                 setStyle("-fx-padding: 5px; -fx-background-color: #F0F0F0;");
             }
