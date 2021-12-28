@@ -6,7 +6,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
-public final class UserProfile {
+public class UserProfile {
     private String username;
     private long userTag;
 
@@ -74,5 +74,13 @@ public final class UserProfile {
             throw new IllegalArgumentException("User's tag can't be set to 0.");
         return new UserProfile(username, userTag);
     }
+
+
+    public static final UserProfile NULL_USER = new UserProfile("", 0) {
+        @Override
+        public boolean equals(Object o) {
+            return o == this;
+        }
+    };
 
 }
