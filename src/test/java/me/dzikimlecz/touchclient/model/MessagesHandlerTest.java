@@ -4,11 +4,9 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
 import java.util.List;
 
 import static java.time.LocalDateTime.now;
-import static org.junit.jupiter.api.Assertions.*;
 
 class MessagesHandlerTest {
     private final @NotNull UserProfile profile = UserProfile.of("LilPope", 2137);
@@ -22,12 +20,13 @@ class MessagesHandlerTest {
         // Given
         var list = List.of(
                 new Message(profile2, profile, "m1", now()),
-                new Message(profile3, profile, "m2", now()),
+                new Message(profile, profile3, "m2", now()),
                 new Message(profile3, profile, "m3", now()),
-                new Message(profile2, profile, "m4", now())
+                new Message(profile, profile2, "m4", now())
         );
         // When
         handler.writeIntoCaches(list);
         // Then
+        while (true);
     }
 }

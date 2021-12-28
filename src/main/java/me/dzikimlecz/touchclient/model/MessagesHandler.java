@@ -9,16 +9,14 @@ import me.dzikimlecz.touchclient.model.container.Messages;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 
 import static java.lang.Math.ceil;
 import static java.lang.String.format;
-import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static me.dzikimlecz.touchclient.config.Env.getEnv;
 
@@ -34,7 +32,7 @@ public final class MessagesHandler  {
 
     private final static int loadAtOnce = 24;
 
-    public MessagesHandler(UserProfile profile) {
+    public MessagesHandler(@NotNull UserProfile profile) {
         this.profile = profile;
         conversationsCache.mkdirs();
     }
@@ -119,73 +117,72 @@ public final class MessagesHandler  {
         writeIntoCaches(result.getElements());
     }
 
-    void writeIntoCaches(List<Message> newElements) {
-        newElements = new LinkedList<>(newElements);
-        final List<File> caches = newElements.stream()
-                .map(Message::getSender)
+    void writeIntoCaches(@NotNull List<Message> newElements) {
+        // Collect messages with every other user
+        final Map<UserProfile, List<Message>> profileMessages = newElements.stream()
+                .collect(toMap(
+                        msg -> retrieveOtherProfile(msg).orElse(UserProfile.NULL_USER),
+                        message -> {
+                            final var list = new ArrayList<Message>();
+                            list.add(message);
+                            return list;
+                        },
+                        (messages, messages2) -> {
+                            messages.addAll(messages2);
+                            return messages;
+                        },
+                        HashMap::new
+                ));
+        profileMessages.remove(UserProfile.NULL_USER);
+        // Create and collect caches of messages with every other user
+        final Map<UserProfile, File> profileCaches = newElements.stream()
+                .map(this::retrieveOtherProfile)
+                .filter(Optional::isPresent)
                 .distinct()
-                .map(profile -> new File(conversationsCache, profile.getUriNameTag() + ".touch"))
-                .peek(file -> {
-                    try {
-                        file.createNewFile();
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                })
-                .collect(toList());
-        final List<Messages> msgs = caches.stream()
-                .map(MessagesHandler::readTextAssertTheFileExists)
-                .dropWhile(String::isEmpty)
-                .map(str -> {
-                    try {
-                        return objectMapper.readValue(str, Messages.class);
-                    } catch (JsonProcessingException e) {
-                        return null;
-                    }
-                })
-                .filter(Objects::nonNull)
-                .collect(toList());
-        for (Messages messages : msgs) {
-            final List<Message> elements = new ArrayList<>(messages.getElements());
-            for (Iterator<Message> iterator = newElements.iterator(); iterator.hasNext(); ) {
-                Message newElement = iterator.next();
-                if (!elements.contains(newElement)) {
-                    elements.add(newElement);
-                    iterator.remove();
+                .map(Optional::get)
+                .collect(toMap(
+                        Function.identity(),
+                        profile -> new File(conversationsCache, profile.getUriNameTag() + ".touch")
+                ));
+        profileCaches.forEach((profile, cache) -> {
+            final var messageList = profileMessages.get(profile);
+            if (messageList == null) return;
+            // checks whether the cache haven't been created yet and creates one if so.
+            final boolean isCacheNew;
+            try {
+                isCacheNew = cache.createNewFile();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+
+            if (isCacheNew) {
+                // save messages
+                final var messages = new Messages(0, 1, messageList, messageList.size());
+                try {
+                    objectMapper.writeValue(cache, messages);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            } else {
+                // append messages to the already cached ones and save them
+                final Messages messages;
+                try {
+                    messages = objectMapper.readValue(cache, Messages.class);
+                } catch (IOException e) {
+                    return;
+                }
+                // creates new list to be sure that its mutable
+                final var elements = new ArrayList<>(messages.getElements());
+                elements.addAll(messageList);
+                messages.setElements(elements);
+                try {
+                    objectMapper.writeValue(cache, messages);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
                 }
             }
-            messages.setElements(elements);
-            final var cache = new File(conversationsCache, elements.get(0).getSender().getUriNameTag() + ".touch");
-            try(var writer = new FileWriter(cache)) {
-                writer.write(objectMapper.writeValueAsString(messages));
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
-        final var map = newElements.stream()
-                .collect(toMap(Message::getSender, message -> {
-                    final var list = new ArrayList<Message>();
-                    list.add(message);
-                    return list;
-                }, (messages, messages2) -> {
-                    messages.addAll(messages2);
-                    return messages;
-                }));
-        map.forEach((profile, messages) -> {
-            final var cache = new File(conversationsCache, profile.getUriNameTag() + ".touch");
-            final var wrapped = new Messages(0, 1, messages, messages.size());
-            try(var writer = new FileWriter(cache)) {
-                writer.write(objectMapper.writeValueAsString(wrapped));
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+            cache.deleteOnExit();
         });
-        try {
-            Files.walk(conversationsCache.toPath())
-                    .forEach(path -> path.toFile().deleteOnExit());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     private Messages fetchNew() {
@@ -237,6 +234,7 @@ public final class MessagesHandler  {
         return profile;
     }
 
+    @NotNull
     private static String readTextAssertTheFileExists(File file) {
         try {
             return readText(file);
@@ -245,6 +243,7 @@ public final class MessagesHandler  {
         }
     }
 
+    @NotNull
     private static String readText(File file) throws IOException {
         final var str = new StringBuilder();
         try (var scanner = new Scanner(file) ) {
@@ -252,5 +251,14 @@ public final class MessagesHandler  {
                 str.append(scanner.nextLine()).append('\n');
         }
         return str.toString();
+    }
+
+    // if message is sent or received by the user returns the other's profile, null otherwise
+    private Optional<UserProfile> retrieveOtherProfile(Message msg) {
+        if (profile.equals(msg.getRecipient()))
+            return Optional.of(msg.getSender());
+        else if (profile.equals(msg.getSender()))
+            return Optional.of(msg.getRecipient());
+        else return Optional.empty();
     }
 }
