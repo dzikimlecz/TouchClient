@@ -41,9 +41,10 @@ public class MessagesView implements Initializable {
     private final SimpleObjectProperty<UserProfile> recipientProfile = new SimpleObjectProperty<>();
     private final AtomicInteger loaded = new AtomicInteger();
 
-    private MessageSender messageSender;
-
     private MessagesHandler messagesHandler;
+    public void setMessagesHandler(MessagesHandler messagesHandler) {
+        this.messagesHandler = messagesHandler;
+    }
 
     public void setUserProfile(UserProfile profile) {
         userProfile.set(profile);
@@ -87,13 +88,6 @@ public class MessagesView implements Initializable {
         });
     }
 
-    private void setMessages(@NotNull List<Message> messages) {
-        final var items = messagesList.getItems();
-        items.clear();
-        items.addAll(messages);
-        sortMessagesList();
-    }
-
     private void addMessage(@NotNull Message msg) {
         messagesList.getItems().add(msg);
         sortMessagesList();
@@ -102,13 +96,6 @@ public class MessagesView implements Initializable {
     private void addMessages(List<Message> messages) {
         if (messages.isEmpty()) return;
         messagesList.getItems().addAll(messages);
-        sortMessagesList();
-    }
-
-    private void addMessages(@NotNull Message msg, Message... messages) {
-        messagesList.getItems().add(msg);
-        if (messages != null)
-            messagesList.getItems().addAll(messages);
         sortMessagesList();
     }
 
@@ -140,8 +127,7 @@ public class MessagesView implements Initializable {
     protected void sendMessage(ActionEvent __) {
         final String value = getTypedText();
         final var msg = createMessage(value);
-        if (messageSender != null)
-            messageSender.send(msg);
+
         addMessage(msg);
     }
 
@@ -171,17 +157,5 @@ public class MessagesView implements Initializable {
                     setGraphic(loadMessageContainer(item));
             }
         };
-    }
-
-    public void setMessageSender(MessageSender messageSender) {
-        this.messageSender = messageSender;
-    }
-
-    public MessagesHandler getMessagesHandler() {
-        return messagesHandler;
-    }
-
-    public void setMessagesHandler(MessagesHandler messagesHandler) {
-        this.messagesHandler = messagesHandler;
     }
 }
