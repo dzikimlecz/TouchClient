@@ -43,6 +43,11 @@ public class MessagesView implements Initializable {
     private final ObjectProperty<UserProfile> userProfile = new SimpleObjectProperty<>();
     private final ObjectProperty<UserProfile> recipientProfile = new SimpleObjectProperty<>();
     private final AtomicInteger loaded = new AtomicInteger();
+    private final BooleanProperty nullsReported = new SimpleBooleanProperty(false);
+    private final BooleanProperty nullsShown = new SimpleBooleanProperty(false);
+    private static final ChangeListener<Boolean> allLoaded =
+            (obs1, __, ___) -> ((SimpleBooleanProperty) obs1).setValue(false);
+
 
     private MessagesHandler messagesHandler;
     public void setMessagesHandler(MessagesHandler messagesHandler) {
@@ -64,30 +69,37 @@ public class MessagesView implements Initializable {
         for (int i = 0; i < 10; i++) messagesList.getItems().add(NULL_MESSAGE);
         messagesList.setSelectionModel(NoSelectionModel.get());
         messagesList.setCellFactory(this::messagesCellFactory);
-        // extracted lambda to a variable, due to the need of warning suppression
-        @SuppressWarnings("unchecked")
-        final ChangeListener<UserProfile> changeListener = (obs, oldVal, newVal) -> {
+        recipientProfile.addListener((obs, oldVal, newVal) -> {
             if (newVal == null) {
-                ((SimpleObjectProperty<UserProfile>) obs).setValue(oldVal);
+                @SuppressWarnings("unchecked")
+                final var mutable = (SimpleObjectProperty<UserProfile>) obs;
+                mutable.setValue(oldVal);
                 return;
             }
+            nullsReported.removeListener(allLoaded);
+            messagesList.getItems().clear();
             loaded.set(0);
-            try {
-                messagesHandler.loadOlder(newVal);
-            } catch (NoSuchElementException ignore) {}
-            final var conversation = messagesHandler.getConversation(newVal, 0);
-            conversation.ifPresent(messages -> {
-                loaded.addAndGet(messages.getSize());
-                messagesList.getItems().addAll(messages.getElements());
-            });
-        };
-        recipientProfile.addListener(changeListener);
-        messagesList.setOnScrollTo(event -> {
-            if (event.getScrollTarget() <= 1) {
-                final var conversation =
-                        messagesHandler.getConversation(recipientProfile.get(), 1);
-                conversation.ifPresent(messages -> addMessages(messages.getElements()));
-            }
+            loadMore(newVal);
+        });
+        messagesList.setOnScroll( event -> {
+            final var totalDeltaX = event.getTotalDeltaX();
+            if (nullsShown.getValue() && totalDeltaX > 50) nullsReported.set(false);
+            else if (nullsShown.getValue() && totalDeltaX < -10) nullsReported.set(true);
+        });
+    }
+
+    private void loadMore(UserProfile newVal) {
+        try {
+            messagesHandler.loadOlder(newVal);
+        } catch (NoSuchElementException ignore) {
+            nullsReported.addListener(allLoaded);
+        }
+        final var conversation = messagesHandler.getConversation(newVal, 0);
+        conversation.ifPresent(messages -> {
+            loaded.addAndGet(messages.getSize());
+            addMessages(messages.getElements());
+            if (messages.getSize() >= 15)
+                nullsHandled();
         });
     }
 
@@ -156,9 +168,22 @@ public class MessagesView implements Initializable {
             @Override
             protected void updateItem(Message item, boolean empty) {
                 super.updateItem(item, empty);
-                if (!empty && item != null)
+                if (!empty && item != null) {
+                    if (NULL_MESSAGE.equals(item))
+                        reportNulls();
                     setGraphic(loadMessageContainer(item));
+                }
             }
         };
+    }
+
+    private void reportNulls() {
+        nullsReported.set(true);
+        nullsShown.set(true);
+    }
+
+    private void nullsHandled() {
+        nullsReported.set(false);
+        nullsShown.set(false);
     }
 }
