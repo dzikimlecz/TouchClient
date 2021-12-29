@@ -1,5 +1,6 @@
 package me.dzikimlecz.touchclient.mainview;
 
+import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -10,9 +11,7 @@ import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import me.dzikimlecz.touchclient.model.UserProfile;
 
-import java.io.IOException;
 import java.net.URL;
-import java.util.Objects;
 import java.util.ResourceBundle;
 
 public class ChatListView implements Initializable {
@@ -32,6 +31,7 @@ public class ChatListView implements Initializable {
             }
         });
         list.setItems(profiles);
+        list.getSelectionModel().clearSelection();
     }
 
     private Node getChat(UserProfile profile) {
@@ -44,5 +44,9 @@ public class ChatListView implements Initializable {
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    public ReadOnlyObjectProperty<UserProfile> selectedItemProperty() {
+        return list.getSelectionModel().selectedItemProperty();
     }
 }

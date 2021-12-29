@@ -35,12 +35,12 @@ public class MainView implements Initializable {
         messagesViewController.setMessagesHandler(new MessagesHandler(getUserProfile()));
         root.setCenter(messagesView.getKey());
         messagesViewController.setUserProfile(getUserProfile());
-        //todo remove hard coded recipient
-        messagesViewController.setRecipientProfile(UserProfile.of("LilPope", 2137));
         final Pair<Node, ChatListView> chatList =
                 loadAndGetController("chatlist-view.fxml");
         final var chatListController = chatList.getValue();
         root.setLeft(chatList.getKey());
+        messagesViewController.recipientProfileProperty()
+                .bind(chatListController.selectedItemProperty());
     }
 
     @NotNull

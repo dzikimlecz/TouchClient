@@ -56,10 +56,6 @@ public class MessagesView implements Initializable {
         userProfile.set(profile);
     }
 
-    public void setRecipientProfile(UserProfile profile) {
-        recipientProfile.set(profile);
-    }
-
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         messagesList.setItems(observableList(new LinkedList<>()));
@@ -67,13 +63,11 @@ public class MessagesView implements Initializable {
         messagesList.setSelectionModel(NoSelectionModel.get());
         messagesList.setCellFactory(this::messagesCellFactory);
         recipientProfile.addListener((obs, oldVal, newVal) -> {
+            messagesList.getItems().clear();
             if (newVal == null) {
-                @SuppressWarnings("unchecked")
-                final var mutable = (SimpleObjectProperty<UserProfile>) obs;
-                mutable.setValue(oldVal);
+                nullsHandled();
                 return;
             }
-            messagesList.getItems().clear();
             populate();
             loaded.set(0);
             loadMore(newVal);
