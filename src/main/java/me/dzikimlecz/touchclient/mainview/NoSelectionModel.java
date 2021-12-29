@@ -12,7 +12,7 @@ public class NoSelectionModel extends MultipleSelectionModel<Message> {
 
     private static NoSelectionModel instance;
 
-    public static NoSelectionModel getInstance() {
+    public static NoSelectionModel get() {
         if (instance == null) instance = new NoSelectionModel();
         return instance;
     }

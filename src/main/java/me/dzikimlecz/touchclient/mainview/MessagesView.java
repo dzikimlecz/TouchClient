@@ -59,6 +59,7 @@ public class MessagesView implements Initializable {
         messagesList.setItems(observableList(new LinkedList<>()));
         //populate the list
         for (int i = 0; i < 10; i++) messagesList.getItems().add(NULL_MESSAGE);
+        messagesList.setSelectionModel(NoSelectionModel.get());
         messagesList.setCellFactory(this::messagesCellFactory);
         // extracted lambda to a variable, due to the need of warning suppression
         @SuppressWarnings("unchecked")
