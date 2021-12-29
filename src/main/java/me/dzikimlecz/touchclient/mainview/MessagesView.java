@@ -42,8 +42,6 @@ public class MessagesView implements Initializable {
     private final AtomicInteger loaded = new AtomicInteger();
     private final BooleanProperty nullsReported = new SimpleBooleanProperty(false);
     private final AtomicBoolean nullsShown = new AtomicBoolean(false);
-    private final AtomicBoolean newMessagesLoaded = new AtomicBoolean(false);
-
 
     private MessagesHandler messagesHandler;
     public void setMessagesHandler(MessagesHandler messagesHandler) {
@@ -80,18 +78,10 @@ public class MessagesView implements Initializable {
         messagesList.setOnScroll( event -> {
             if (nullsShown.get()) {
                 final var totalDeltaY = event.getDeltaY();
-                if (totalDeltaY < -20)
-                    nullsReported.set(false);
-                else if (totalDeltaY > 20) {
-                    nullsReported.set(true);
-                    if (newMessagesLoaded.get()) {
-                        event.consume();
-                        newMessagesLoaded.set(false);
-                    }
-                }
+                if (totalDeltaY < -20) nullsReported.set(false);
+                else if (totalDeltaY > 20) nullsReported.set(true);
             }
         });
-        messagesList.setOnScrollTo(event -> newMessagesLoaded.set(true));
         nullsReported.addListener(((observable, oldValue, newValue) -> {
             if (newValue) loadMore(recipientProfile.get());
         }));
@@ -104,7 +94,6 @@ public class MessagesView implements Initializable {
     }
 
     private void loadMore(UserProfile from) {
-        newMessagesLoaded.set(false);
         try {
             messagesHandler.loadNew();
             messagesHandler.loadOlder(from);
@@ -114,9 +103,7 @@ public class MessagesView implements Initializable {
             if (items.stream().anyMatch(message -> !messages.getElements().contains(message))) {
                 final var newMessages = new ArrayList<>(messages.getElements());
                 newMessages.removeAll(items);
-                items.addAll(newMessages);
-                newMessagesLoaded.set(true);
-                scrollToBottom();
+                addMessages(newMessages);
             } else {
                 final var conversation = messagesHandler.getConversation(from, loaded.get());
                 conversation.ifPresent(messages1 -> {
