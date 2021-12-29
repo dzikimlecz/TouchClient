@@ -39,8 +39,10 @@ public final class MessagesHandler  {
 
     public Optional<Messages> getConversation(UserProfile with, int page) {
         // fetches new messages if they're requested
-        if (page == 0)
+        if (page == 0) {
             loadNew();
+            cachedConversation = readCache(with).orElse(null);
+        }
         // if cache holds other, or no conversation, load proper one into it
         if (cachedConversation == null || !with.equals(cachedConversation.getElements().get(0).getSender())) {
             // checks if conversation was cached.
@@ -60,8 +62,8 @@ public final class MessagesHandler  {
                                 });
                     });
             // if failed to load conversation into cache returns empty;
-            if (cachedConversation == null) return Optional.empty();
         }
+        if (cachedConversation == null) return Optional.empty();
         // loads more messages into caches until ordered page is reached
         var cachedElements = cachedConversation.getElements();
         while (cachedElements.size() < (page + 1) * loadAtOnce) {
@@ -82,7 +84,7 @@ public final class MessagesHandler  {
             }
             cachedConversation = readCache(with)
                     // if the conversation wasn't cached method wouldn't reach this point,
-                    // or the cache would've been deleted while the run time (after line 186, before this point)
+                    // or the cache would've been deleted while the run time
                     .orElseThrow(() -> new RuntimeException(new IOException("Cache was deleted concurrently to the program.")));
             cachedElements = cachedConversation.getElements();
         }
