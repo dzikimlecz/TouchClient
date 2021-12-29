@@ -3,6 +3,8 @@ package me.dzikimlecz.touchclient.model;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import coresearch.cvurl.io.mapper.MapperFactory;
+import coresearch.cvurl.io.model.CVurlConfig;
 import coresearch.cvurl.io.request.CVurl;
 import me.dzikimlecz.touchclient.mainview.ConnectionException;
 import me.dzikimlecz.touchclient.model.container.Messages;
@@ -24,11 +26,19 @@ public final class MessagesHandler  {
     private final UserProfile profile;
     private final AtomicReference<UserProfile> lastRetrieved = new AtomicReference<>();
     private final AtomicInteger currentPageIndex = new AtomicInteger();
-    private final CVurl cVurl = new CVurl();
-    private final ObjectMapper objectMapper = new ObjectMapper()
-            .registerModule(new JavaTimeModule());
     private final File conversationsCache = new File(System.getenv("APPDATA") + "\\Touch");
     private Messages cachedConversation;
+
+    private final ObjectMapper objectMapper = new ObjectMapper()
+            .registerModule(new JavaTimeModule());
+    private final CVurl cVurl = new CVurl(
+            CVurlConfig.builder()
+                    .genericMapper(MapperFactory.from(
+                            new ObjectMapper()
+                                    .registerModule(new JavaTimeModule()))
+                    ).build()
+    );
+
 
     private final static int loadAtOnce = 24;
 
@@ -37,7 +47,7 @@ public final class MessagesHandler  {
         conversationsCache.mkdirs();
     }
 
-    public Optional<Messages> getConversation(UserProfile with, int page) {
+    public synchronized Optional<Messages> getConversation(UserProfile with, int page) {
         // fetches new messages if they're requested
         if (page == 0) {
             loadNew();
@@ -97,13 +107,13 @@ public final class MessagesHandler  {
         ));
     }
 
-    public void loadNew() {
+    public synchronized void loadNew() {
         final var newMessages = fetchNew();
         final List<Message> newElements = newMessages.getElements();
         writeIntoCaches(newElements);
     }
 
-    public void loadOlder(@NotNull UserProfile from) {
+    public synchronized void loadOlder(@NotNull UserProfile from) {
         if (!from.equals(lastRetrieved.get())) {
             currentPageIndex.set(0);
             lastRetrieved.set(from);
@@ -118,6 +128,17 @@ public final class MessagesHandler  {
             throw new NoSuchElementException("Already loaded everything.");
         writeIntoCaches(result.getElements());
     }
+
+    public void sendMessage(Message message) {
+        final var status = cVurl.post(getEnv("server address") + "/msg")
+                .body(message)
+                .asString()
+                .orElseThrow(() -> new ConnectionException("Could not send the message."))
+                .status();
+        if (status < 200 || status >= 300)
+            throw new ConnectionException("Sending failure. Code " + status);
+    }
+
 
     void writeIntoCaches(@NotNull List<Message> newElements) {
         // Collect messages with every other user
@@ -203,7 +224,7 @@ public final class MessagesHandler  {
         }
     }
 
-    private Messages fetch(MessageRequestSpecification request) {
+    private Messages fetch(@NotNull MessageRequestSpecification request) {
         final var url = format("%s/msg?user1=%s&user2=%s&page=%d&size=%d",
                 getEnv("server address"),
                 request.getNameTags().get(0),
@@ -222,7 +243,7 @@ public final class MessagesHandler  {
         }
     }
 
-    private Optional<Messages> readCache(UserProfile of) {
+    private Optional<Messages> readCache(@NotNull UserProfile of) {
         final var file = new File(conversationsCache, of.getUriNameTag() + ".touch");
         if (file.exists())
             try {
@@ -238,13 +259,13 @@ public final class MessagesHandler  {
         return profile;
     }
 
-    @NotNull
-    private static String readTextAssertTheFileExists(File file) {
-        try {
-            return readText(file);
-        } catch (IOException e) {
-            throw new AssertionError();
-        }
+    // if message is sent or received by the user returns the other's profile, null otherwise
+    private Optional<UserProfile> retrieveOtherProfile(@NotNull Message msg) {
+        if (profile.equals(msg.getRecipient()))
+            return Optional.of(msg.getSender());
+        else if (profile.equals(msg.getSender()))
+            return Optional.of(msg.getRecipient());
+        else return Optional.empty();
     }
 
     @NotNull
@@ -257,12 +278,4 @@ public final class MessagesHandler  {
         return str.toString();
     }
 
-    // if message is sent or received by the user returns the other's profile, null otherwise
-    private Optional<UserProfile> retrieveOtherProfile(Message msg) {
-        if (profile.equals(msg.getRecipient()))
-            return Optional.of(msg.getSender());
-        else if (profile.equals(msg.getSender()))
-            return Optional.of(msg.getRecipient());
-        else return Optional.empty();
-    }
 }

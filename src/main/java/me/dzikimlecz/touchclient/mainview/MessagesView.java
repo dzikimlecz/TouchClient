@@ -158,11 +158,10 @@ public class MessagesView implements Initializable {
     }
 
     @FXML
-    @SuppressWarnings("unused")
-    protected void sendMessage(ActionEvent __) {
+    protected void sendMessage(@SuppressWarnings("unused") ActionEvent __) {
         final String value = getTypedText();
         final var msg = createMessage(value);
-
+        messagesHandler.sendMessage(msg);
         addMessage(msg);
     }
 
