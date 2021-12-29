@@ -29,14 +29,18 @@ public class MainView implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        final var nodeController =
-                loadAndGetController(getClass().getResource("messages-view.fxml"));
-        MessagesView messagesView = nodeController.getValue();
-        messagesView.setMessagesHandler(new MessagesHandler(getUserProfile()));
-        root.setCenter(nodeController.getKey());
-        messagesView.setUserProfile(getUserProfile());
+        final Pair<Node, MessagesView> messagesView =
+                loadAndGetController("messages-view.fxml");
+        var messagesViewController = messagesView.getValue();
+        messagesViewController.setMessagesHandler(new MessagesHandler(getUserProfile()));
+        root.setCenter(messagesView.getKey());
+        messagesViewController.setUserProfile(getUserProfile());
         //todo remove hard coded recipient
-        messagesView.setRecipientProfile(UserProfile.of("LilPope", 2137));
+        messagesViewController.setRecipientProfile(UserProfile.of("LilPope", 2137));
+        final Pair<Node, ChatListView> chatList =
+                loadAndGetController("chatlist-view.fxml");
+        final var chatListController = chatList.getValue();
+        root.setLeft(chatList.getKey());
     }
 
     @NotNull
@@ -45,16 +49,17 @@ public class MainView implements Initializable {
     }
 
     @NotNull
-    private static Pair<Node, MessagesView> loadAndGetController(URL resource) {
-        final var loader = new FXMLLoader(resource);
+    private <T> Pair<Node, T> loadAndGetController(String resource) {
+        final var loader = new FXMLLoader(getClass().getResource(resource));
         final Node node;
         try {
             node = loader.load();
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }
-        final MessagesView controller = loader.getController();
-        if (controller == null) throw new IllegalStateException("MessagesView controller is null!");
+        final T controller = loader.getController();
+        if (controller == null)
+            throw new IllegalStateException(resource + " controller must not be null");
         return new Pair<>(node, controller);
     }
 }

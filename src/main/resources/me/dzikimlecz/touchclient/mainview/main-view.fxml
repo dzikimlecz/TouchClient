@@ -7,9 +7,6 @@
             fx:controller="me.dzikimlecz.touchclient.mainview.MainView"
             fx:id="root"
 >
-    <left>
-        <fx:include source="chatlist-view.fxml" />
-    </left>
 
 
 </BorderPane>

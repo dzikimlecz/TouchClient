@@ -38,6 +38,10 @@ public class MessagesView implements Initializable {
     public TextArea messageArea;
 
     private final ObjectProperty<UserProfile> userProfile = new SimpleObjectProperty<>();
+    public ObjectProperty<UserProfile> recipientProfileProperty() {
+        return recipientProfile;
+    }
+
     private final ObjectProperty<UserProfile> recipientProfile = new SimpleObjectProperty<>();
     private final AtomicInteger loaded = new AtomicInteger();
     private final BooleanProperty nullsReported = new SimpleBooleanProperty(false);
