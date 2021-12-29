@@ -27,8 +27,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.time.LocalDateTime.now;
 import static javafx.collections.FXCollections.observableList;
-import static me.dzikimlecz.touchclient.model.message.MessageDisplayMode.AS_RECIPIENT;
-import static me.dzikimlecz.touchclient.model.message.MessageDisplayMode.AS_SENDER;
+import static me.dzikimlecz.touchclient.model.Message.NULL_MESSAGE;
+import static me.dzikimlecz.touchclient.model.message.MessageDisplayMode.*;
 
 public class MessagesView implements Initializable {
 
@@ -58,8 +58,7 @@ public class MessagesView implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         messagesList.setItems(observableList(new LinkedList<>()));
         //populate the list
-        for (int i = 0; i < 10; i++) messagesList.getItems().add(Message.EMPTY);
-        messagesList.setSelectionModel(NoSelectionModel.getInstance());
+        for (int i = 0; i < 10; i++) messagesList.getItems().add(NULL_MESSAGE);
         messagesList.setCellFactory(this::messagesCellFactory);
         // extracted lambda to a variable, due to the need of warning suppression
         @SuppressWarnings("unchecked")
@@ -102,7 +101,7 @@ public class MessagesView implements Initializable {
     private void sortMessagesList() {
         messagesList.getItems().sort((m1, m2) -> {
             if (m1.equals(m2)) return 0;
-            if (m1 == Message.EMPTY) return -1;
+            if (m1 == NULL_MESSAGE) return -1;
             return m1.getSentOn().compareTo(m2.getSentOn());
         });
     }

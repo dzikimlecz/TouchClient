@@ -91,7 +91,7 @@ public class Message {
                 '}';
     }
 
-    public static final Message EMPTY = new Message() {
+    public static final Message NULL_MESSAGE = new Message() {
         @Override public boolean equals(Object o) {
             return o == this;
         }
