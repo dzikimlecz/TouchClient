@@ -173,7 +173,9 @@ public final class MessagesHandler  {
                 }
                 // creates new list to be sure that its mutable
                 final var elements = new ArrayList<>(messages.getElements());
-                elements.addAll(messageList);
+                for (Message message : messageList)
+                    if (message != null && !elements.contains(message))
+                        elements.add(message);
                 messages.setElements(elements);
                 try {
                     objectMapper.writeValue(cache, messages);
