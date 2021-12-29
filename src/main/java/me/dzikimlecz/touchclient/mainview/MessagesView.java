@@ -4,7 +4,6 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.value.ChangeListener;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -22,10 +21,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.ResourceBundle;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.time.LocalDateTime.now;
@@ -44,9 +41,8 @@ public class MessagesView implements Initializable {
     private final ObjectProperty<UserProfile> recipientProfile = new SimpleObjectProperty<>();
     private final AtomicInteger loaded = new AtomicInteger();
     private final BooleanProperty nullsReported = new SimpleBooleanProperty(false);
-    private final BooleanProperty nullsShown = new SimpleBooleanProperty(false);
-    private static final ChangeListener<Boolean> allLoaded =
-            (obs1, __, ___) -> ((SimpleBooleanProperty) obs1).setValue(false);
+    private final AtomicBoolean nullsShown = new AtomicBoolean(false);
+    private final AtomicBoolean newMessagesLoaded = new AtomicBoolean(false);
 
 
     private MessagesHandler messagesHandler;
@@ -65,8 +61,7 @@ public class MessagesView implements Initializable {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         messagesList.setItems(observableList(new LinkedList<>()));
-        //populate the list
-        for (int i = 0; i < 10; i++) messagesList.getItems().add(NULL_MESSAGE);
+        populate();
         messagesList.setSelectionModel(NoSelectionModel.get());
         messagesList.setCellFactory(this::messagesCellFactory);
         recipientProfile.addListener((obs, oldVal, newVal) -> {
@@ -76,31 +71,66 @@ public class MessagesView implements Initializable {
                 mutable.setValue(oldVal);
                 return;
             }
-            nullsReported.removeListener(allLoaded);
             messagesList.getItems().clear();
+            populate();
             loaded.set(0);
             loadMore(newVal);
+            scrollToBottom();
         });
         messagesList.setOnScroll( event -> {
-            final var totalDeltaX = event.getTotalDeltaX();
-            if (nullsShown.getValue() && totalDeltaX > 50) nullsReported.set(false);
-            else if (nullsShown.getValue() && totalDeltaX < -10) nullsReported.set(true);
+            if (nullsShown.get()) {
+                final var totalDeltaY = event.getDeltaY();
+                if (totalDeltaY < -20)
+                    nullsReported.set(false);
+                else if (totalDeltaY > 20) {
+                    nullsReported.set(true);
+                    if (newMessagesLoaded.get()) {
+                        event.consume();
+                        newMessagesLoaded.set(false);
+                    }
+                }
+            }
+        });
+        messagesList.setOnScrollTo(event -> newMessagesLoaded.set(true));
+        nullsReported.addListener(((observable, oldValue, newValue) -> {
+            if (newValue) loadMore(recipientProfile.get());
+        }));
+    }
+
+    private void populate() {
+        var nullList = new ArrayList<Message>();
+        for (int i = 0; i < 10; i++) nullList.add(NULL_MESSAGE);
+        messagesList.getItems().addAll(nullList);
+    }
+
+    private void loadMore(UserProfile from) {
+        newMessagesLoaded.set(false);
+        try {
+            messagesHandler.loadNew();
+            messagesHandler.loadOlder(from);
+        } catch (NoSuchElementException ignore) {}
+        messagesHandler.getConversation(from, 0).ifPresent(messages -> {
+            final var items = messagesList.getItems();
+            if (items.stream().anyMatch(message -> !messages.getElements().contains(message))) {
+                final var newMessages = new ArrayList<>(messages.getElements());
+                newMessages.removeAll(items);
+                items.addAll(newMessages);
+                newMessagesLoaded.set(true);
+                scrollToBottom();
+            } else {
+                final var conversation = messagesHandler.getConversation(from, loaded.get());
+                conversation.ifPresent(messages1 -> {
+                    loaded.incrementAndGet();
+                    addMessages(messages1.getElements());
+                    if (messages1.getSize() >= 15)
+                        nullsHandled();
+                });
+            }
         });
     }
 
-    private void loadMore(UserProfile newVal) {
-        try {
-            messagesHandler.loadOlder(newVal);
-        } catch (NoSuchElementException ignore) {
-            nullsReported.addListener(allLoaded);
-        }
-        final var conversation = messagesHandler.getConversation(newVal, 0);
-        conversation.ifPresent(messages -> {
-            loaded.addAndGet(messages.getSize());
-            addMessages(messages.getElements());
-            if (messages.getSize() >= 15)
-                nullsHandled();
-        });
+    private void scrollToBottom() {
+        messagesList.scrollTo(messagesList.getItems().size() - 1);
     }
 
     private void addMessage(@NotNull Message msg) {
@@ -181,7 +211,6 @@ public class MessagesView implements Initializable {
     }
 
     private void reportNulls() {
-        nullsReported.set(true);
         nullsShown.set(true);
     }
 
