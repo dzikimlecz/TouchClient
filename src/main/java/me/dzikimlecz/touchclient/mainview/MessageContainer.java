@@ -1,7 +1,6 @@
 package me.dzikimlecz.touchclient.mainview;
 
 import javafx.fxml.FXML;
-import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
 import javafx.scene.layout.*;
@@ -12,7 +11,7 @@ import me.dzikimlecz.touchclient.model.message.MessageDisplayMode;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
-import static me.dzikimlecz.touchclient.model.message.MessageDisplayMode.*;
+import static me.dzikimlecz.touchclient.model.message.MessageDisplayMode.NULL;
 
 public class MessageContainer  {
     @FXML
@@ -25,13 +24,20 @@ public class MessageContainer  {
     public void put(@NotNull Message msg, @NotNull MessageDisplayMode displayMode) {
         label.setStyle("-fx-padding: 3px;");
         root.getChildren().clear();
-        label.setText(msg.getContent());
-        if (displayMode == AS_RECIPIENT) {
-            setBackground(label, Color.WHEAT);
-            root.setLeft(label);
-        } else if (displayMode == AS_SENDER) {
-            setBackground(label, Color.WHITE);
-            root.setRight(label);
+        label.setText(displayMode != NULL ? msg.getContent() : " ");
+        switch (displayMode) {
+            case AS_RECIPIENT:
+                setBackground(label, Color.POWDERBLUE);
+                root.setLeft(label);
+                break;
+            case AS_SENDER:
+                setBackground(label, Color.BLANCHEDALMOND);
+                root.setRight(label);
+                break;
+            case NULL:
+                setBackground(label, Color.WHITESMOKE);
+                root.setCenter(label);
+                break;
         }
     }
 

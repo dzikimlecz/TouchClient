@@ -132,7 +132,10 @@ public class MessagesView implements Initializable {
             throw new IllegalStateException(e);
         }
         MessageContainer container = loader.getController();
-        var displayMode = userProfile.get().equals(msg.getSender()) ? AS_SENDER : AS_RECIPIENT;
+        var displayMode =
+                NULL_MESSAGE.equals(msg) ? NULL :
+                        userProfile.get().equals(msg.getSender()) ?
+                            AS_SENDER : AS_RECIPIENT;
         container.put(msg, displayMode);
         return node;
     }
