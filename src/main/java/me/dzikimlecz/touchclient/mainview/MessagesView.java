@@ -1,5 +1,8 @@
 package me.dzikimlecz.touchclient.mainview;
 
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.event.ActionEvent;
@@ -37,8 +40,8 @@ public class MessagesView implements Initializable {
     @FXML
     public TextArea messageArea;
 
-    private final SimpleObjectProperty<UserProfile> userProfile = new SimpleObjectProperty<>();
-    private final SimpleObjectProperty<UserProfile> recipientProfile = new SimpleObjectProperty<>();
+    private final ObjectProperty<UserProfile> userProfile = new SimpleObjectProperty<>();
+    private final ObjectProperty<UserProfile> recipientProfile = new SimpleObjectProperty<>();
     private final AtomicInteger loaded = new AtomicInteger();
 
     private MessagesHandler messagesHandler;
