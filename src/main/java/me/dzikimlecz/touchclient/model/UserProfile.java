@@ -75,6 +75,30 @@ public class UserProfile {
         return new UserProfile(username, userTag);
     }
 
+    public static String getUsername(String @NotNull [] nameTagArr) {
+        switch (nameTagArr.length) {
+            case 0:
+                throw new IllegalArgumentException("NameTag can't be empty.");
+            case 1:
+                throw new IllegalArgumentException("'" + nameTagArr[0] + "' is not a valid NameTag.");
+            case 2:
+                return nameTagArr[0];
+            default:
+                throw new IllegalArgumentException(String.join("#", nameTagArr) + " is not a valid NameTag.");
+        }
+    }
+
+    public static long parseTag(@NotNull String tagString) {
+        final long tag;
+        try {
+            tag = Long.parseLong(tagString);
+            if (tag == 0) throw new NumberFormatException();
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("'" + tagString + "' is not a valid tag.");
+        }
+        return tag;
+    }
+
 
     public static final UserProfile NULL_USER = new UserProfile("", 0) {
         @Override
