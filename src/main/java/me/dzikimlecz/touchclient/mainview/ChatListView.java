@@ -8,6 +8,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
+import me.dzikimlecz.touchclient.model.ProfilesCache;
 import me.dzikimlecz.touchclient.model.UserProfile;
 
 import java.net.URL;
@@ -15,6 +16,7 @@ import java.util.Collection;
 import java.util.ResourceBundle;
 
 import static javafx.collections.FXCollections.observableArrayList;
+import static me.dzikimlecz.touchclient.model.ProfilesCache.getProfiles;
 
 public class ChatListView implements Initializable {
     @FXML
@@ -22,14 +24,13 @@ public class ChatListView implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        ObservableList<UserProfile> profiles = observableArrayList();
         list.setCellFactory(listView -> new ListCell<>() {
             @Override protected void updateItem(UserProfile item, boolean empty) {
                 super.updateItem(item, empty);
                 if (item != null && !empty) setGraphic(getChat(item));
             }
         });
-        list.setItems(profiles);
+        list.setItems(observableArrayList(getProfiles()));
         list.getSelectionModel().clearSelection();
     }
 
