@@ -49,9 +49,8 @@ public class ProfilesCache {
 
     public static void cacheUsers(@NotNull Collection<UserProfile> profiles) {
         try {
-            for (UserProfile profile : profiles) {
+            for (UserProfile profile : profiles)
                 new File(usersStorage, "." + profile.getUriNameTag()).createNewFile();
-            }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
