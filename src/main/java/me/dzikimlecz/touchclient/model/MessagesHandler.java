@@ -186,6 +186,7 @@ public final class MessagesHandler  {
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
+                ProfilesCache.cacheUser(profile);
             } else {
                 // append messages to the already cached ones and save them
                 final Messages messages;
