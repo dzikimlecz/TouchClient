@@ -6,11 +6,11 @@ import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.Parent;
+import javafx.scene.control.Alert;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import javafx.util.Pair;
 import me.dzikimlecz.touchclient.model.ServerHandler;
-import me.dzikimlecz.touchclient.model.ProfilesCache;
 import me.dzikimlecz.touchclient.model.UserProfile;
 import org.jetbrains.annotations.NotNull;
 
@@ -19,6 +19,8 @@ import java.net.URL;
 import java.util.ResourceBundle;
 
 import static java.util.Objects.requireNonNull;
+import static javafx.scene.control.Alert.AlertType.WARNING;
+import static me.dzikimlecz.touchclient.model.ProfilesCache.cacheUser;
 import static me.dzikimlecz.touchclient.model.UserProfile.getUsername;
 import static me.dzikimlecz.touchclient.model.UserProfile.parseTag;
 
@@ -32,6 +34,7 @@ public class MainView implements Initializable {
     public TextField newMessageField;
 
     private ChatListView chatList;
+    private final ServerHandler serverHandler = new ServerHandler(getUserProfile());
 
     @NotNull
     public static Parent create() throws Exception {
@@ -43,7 +46,7 @@ public class MainView implements Initializable {
         final Pair<Node, MessagesView> messagesView =
                 loadAndGetController("messages-view.fxml");
         var messagesViewController = messagesView.getValue();
-        messagesViewController.setMessagesHandler(new ServerHandler(getUserProfile()));
+        messagesViewController.setServerHandler(serverHandler);
         root.setCenter(messagesView.getKey());
         messagesViewController.setUserProfile(getUserProfile());
         final Pair<Node, ChatListView> chatList =
@@ -77,10 +80,13 @@ public class MainView implements Initializable {
     @FXML
     protected void toNewUser(@SuppressWarnings("unused") ActionEvent __) {
         final var text = newMessageField.getText().trim();
+        newMessageField.clear();
         final var strings = text.split("#");
         final var profile = UserProfile.of(getUsername(strings), parseTag(strings[1]));
-        ProfilesCache.cacheUser(profile);
-        chatList.addProfile(profile);
-        chatList.select(profile);
+        if (serverHandler.doesProfileExist(profile)) {
+            cacheUser(profile);
+            chatList.addProfile(profile);
+            chatList.select(profile);
+        } else new Alert(WARNING, "Can't find user " + profile.getNameTag()).show();
     }
 }
