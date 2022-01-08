@@ -24,6 +24,7 @@ public class ProfilesCache {
             profiles.addAll(
                     Files.walk(usersStorage.toPath())
                             .map(Path::toFile)
+                            .dropWhile(File::isDirectory)
                             .map(File::getName)
                             .map(s -> s.substring(1))
                             .map(s -> {
