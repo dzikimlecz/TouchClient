@@ -278,4 +278,10 @@ public final class ServerHandler {
         return str.toString();
     }
 
+    public boolean doesProfileExist(@NotNull UserProfile profile) {
+        final var url = format("%s/profiles/%s", getEnv("server address"), profile.getUriNameTag());
+        final var optional = cVurl.get(url).asObject(UserProfile.class, 200);
+        return optional.isPresent() && optional.get().equals(profile);
+    }
+
 }
