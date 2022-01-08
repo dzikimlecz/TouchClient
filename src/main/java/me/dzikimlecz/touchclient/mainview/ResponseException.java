@@ -16,14 +16,4 @@ public class ResponseException extends RuntimeException {
         super(message);
         this.statusCode = statusCode;
     }
-
-    public ResponseException(String message, int statusCode, Throwable cause) {
-        super(message, cause);
-        this.statusCode = statusCode;
-    }
-
-    public ResponseException(int statusCode, Throwable cause) {
-        super(cause);
-        this.statusCode = statusCode;
-    }
 }
