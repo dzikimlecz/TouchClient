@@ -5,6 +5,7 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
+import java.util.function.Supplier;
 
 public class UserProfile {
     private String username;
@@ -75,6 +76,7 @@ public class UserProfile {
         return new UserProfile(username, userTag);
     }
 
+    // validates the array (should be exactly of format {name, tag}) and returns the name
     public static String getUsername(String @NotNull [] nameTagArr) {
         switch (nameTagArr.length) {
             case 0:
@@ -90,12 +92,14 @@ public class UserProfile {
 
     public static long parseTag(@NotNull String tagString) {
         final long tag;
+        final Supplier<RuntimeException> exception =
+                () -> new IllegalArgumentException("'" + tagString + "' is not a valid tag.");
         try {
             tag = Long.parseLong(tagString);
-            if (tag == 0) throw new NumberFormatException();
         } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("'" + tagString + "' is not a valid tag.");
+            throw exception.get();
         }
+        if (tag == 0) throw exception.get();
         return tag;
     }
 
