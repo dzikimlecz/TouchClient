@@ -14,7 +14,7 @@ import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
 import me.dzikimlecz.touchclient.model.Message;
-import me.dzikimlecz.touchclient.model.MessagesHandler;
+import me.dzikimlecz.touchclient.model.ServerHandler;
 import me.dzikimlecz.touchclient.model.UserProfile;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -49,9 +49,9 @@ public class MessagesView implements Initializable {
     private final BooleanProperty nullsReported = new SimpleBooleanProperty(false);
     private final AtomicBoolean nullsShown = new AtomicBoolean(false);
 
-    private MessagesHandler messagesHandler;
-    public void setMessagesHandler(MessagesHandler messagesHandler) {
-        this.messagesHandler = messagesHandler;
+    private ServerHandler serverHandler;
+    public void setServerHandler(ServerHandler serverHandler) {
+        this.serverHandler = serverHandler;
     }
 
     public void setUserProfile(UserProfile profile) {
@@ -95,7 +95,7 @@ public class MessagesView implements Initializable {
 
     private void loadMore(UserProfile from) {
         try {
-            messagesHandler.loadNew();
+            serverHandler.loadNew();
         }
         catch (ConnectionException e) {
             new Alert(ERROR, "Could not connect to the server.").show();
@@ -105,21 +105,21 @@ public class MessagesView implements Initializable {
             return;
         }
         try {
-            messagesHandler.loadOlder(from);
+            serverHandler.loadOlder(from);
         } catch (ResponseException e) {
             if (e.getStatusCode() == 404)
                 new Alert(ERROR, "Can't find user " + from.getNameTag()).show();
             return;
         } catch (NoSuchElementException ignore) {}
 
-        messagesHandler.getConversation(from, 0).ifPresent(messages -> {
+        serverHandler.getConversation(from, 0).ifPresent(messages -> {
             final var items = messagesList.getItems();
             if (items.stream().anyMatch(message -> !messages.getElements().contains(message))) {
                 final var newMessages = new ArrayList<>(messages.getElements());
                 newMessages.removeAll(items);
                 addMessages(newMessages);
             } else {
-                final var conversation = messagesHandler.getConversation(from, loaded.get());
+                final var conversation = serverHandler.getConversation(from, loaded.get());
                 conversation.ifPresent(messages1 -> {
                     loaded.incrementAndGet();
                     addMessages(messages1.getElements());
@@ -176,7 +176,7 @@ public class MessagesView implements Initializable {
         final String value = getTypedText();
         final var msg = createMessage(value);
         try {
-            messagesHandler.sendMessage(msg);
+            serverHandler.sendMessage(msg);
         } catch (ResponseException e) {
             if (e.getStatusCode() == 404)
                 new Alert(ERROR, "Can't find user " + recipientProfile.get().getNameTag()).show();

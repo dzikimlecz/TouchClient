@@ -23,7 +23,7 @@ import static java.lang.String.format;
 import static java.util.stream.Collectors.toMap;
 import static me.dzikimlecz.touchclient.config.Env.getEnv;
 
-public final class MessagesHandler  {
+public final class ServerHandler {
     private final UserProfile profile;
     private final AtomicReference<UserProfile> lastRetrieved = new AtomicReference<>();
     private final AtomicInteger currentPageIndex = new AtomicInteger();
@@ -43,7 +43,7 @@ public final class MessagesHandler  {
 
     private final static int loadAtOnce = 24;
 
-    public MessagesHandler(@NotNull UserProfile profile) {
+    public ServerHandler(@NotNull UserProfile profile) {
         this.profile = profile;
         conversationsCache.mkdirs();
     }

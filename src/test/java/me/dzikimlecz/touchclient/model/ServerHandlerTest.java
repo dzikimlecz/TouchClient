@@ -8,11 +8,11 @@ import java.util.List;
 
 import static java.time.LocalDateTime.now;
 
-class MessagesHandlerTest {
+class ServerHandlerTest {
     private final @NotNull UserProfile profile = UserProfile.of("LilPope", 2137);
     private final @NotNull UserProfile profile2 = UserProfile.of("BigPriest", 3000);
     private final @NotNull UserProfile profile3 = UserProfile.of("NOOOPE", 3000);
-    MessagesHandler handler = new MessagesHandler(profile);
+    ServerHandler handler = new ServerHandler(profile);
 
     @Test
     @DisplayName("Should write shit into caches")

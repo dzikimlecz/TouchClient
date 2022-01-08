@@ -9,7 +9,7 @@ import javafx.scene.Parent;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import javafx.util.Pair;
-import me.dzikimlecz.touchclient.model.MessagesHandler;
+import me.dzikimlecz.touchclient.model.ServerHandler;
 import me.dzikimlecz.touchclient.model.ProfilesCache;
 import me.dzikimlecz.touchclient.model.UserProfile;
 import org.jetbrains.annotations.NotNull;
@@ -43,7 +43,7 @@ public class MainView implements Initializable {
         final Pair<Node, MessagesView> messagesView =
                 loadAndGetController("messages-view.fxml");
         var messagesViewController = messagesView.getValue();
-        messagesViewController.setMessagesHandler(new MessagesHandler(getUserProfile()));
+        messagesViewController.setMessagesHandler(new ServerHandler(getUserProfile()));
         root.setCenter(messagesView.getKey());
         messagesViewController.setUserProfile(getUserProfile());
         final Pair<Node, ChatListView> chatList =
