@@ -10,7 +10,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import javafx.util.Pair;
-import me.dzikimlecz.touchclient.model.ServerHandler;
+import me.dzikimlecz.touchclient.client.ServerHandler;
 import me.dzikimlecz.touchclient.model.UserProfile;
 import org.jetbrains.annotations.NotNull;
 

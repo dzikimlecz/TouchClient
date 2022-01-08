@@ -1,4 +1,4 @@
-package me.dzikimlecz.touchclient.mainview;
+package me.dzikimlecz.touchclient.client;
 
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;

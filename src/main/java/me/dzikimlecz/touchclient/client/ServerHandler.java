@@ -1,4 +1,4 @@
-package me.dzikimlecz.touchclient.model;
+package me.dzikimlecz.touchclient.client;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -6,8 +6,9 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import coresearch.cvurl.io.mapper.MapperFactory;
 import coresearch.cvurl.io.model.CVurlConfig;
 import coresearch.cvurl.io.request.CVurl;
-import me.dzikimlecz.touchclient.mainview.ConnectionException;
-import me.dzikimlecz.touchclient.mainview.ResponseException;
+import me.dzikimlecz.touchclient.model.Message;
+import me.dzikimlecz.touchclient.model.ProfilesCache;
+import me.dzikimlecz.touchclient.model.UserProfile;
 import me.dzikimlecz.touchclient.model.container.Messages;
 import org.jetbrains.annotations.NotNull;
 

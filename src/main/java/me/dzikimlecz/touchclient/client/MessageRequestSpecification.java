@@ -1,4 +1,4 @@
-package me.dzikimlecz.touchclient.model;
+package me.dzikimlecz.touchclient.client;
 
 import java.util.List;
 

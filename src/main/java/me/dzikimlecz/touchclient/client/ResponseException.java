@@ -1,4 +1,4 @@
-package me.dzikimlecz.touchclient.mainview;
+package me.dzikimlecz.touchclient.client;
 
 public class ResponseException extends RuntimeException {
     public int getStatusCode() {

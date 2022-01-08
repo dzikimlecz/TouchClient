@@ -1,5 +1,8 @@
-package me.dzikimlecz.touchclient.model;
+package me.dzikimlecz.touchclient.client;
 
+import me.dzikimlecz.touchclient.client.ServerHandler;
+import me.dzikimlecz.touchclient.model.Message;
+import me.dzikimlecz.touchclient.model.UserProfile;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
