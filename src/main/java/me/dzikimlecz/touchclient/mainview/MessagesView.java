@@ -9,6 +9,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
+import javafx.scene.control.Alert;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
@@ -27,6 +28,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.time.LocalDateTime.now;
 import static javafx.collections.FXCollections.observableList;
+import static javafx.scene.control.Alert.AlertType.*;
 import static me.dzikimlecz.touchclient.model.Message.NULL_MESSAGE;
 import static me.dzikimlecz.touchclient.model.message.MessageDisplayMode.*;
 
@@ -94,8 +96,22 @@ public class MessagesView implements Initializable {
     private void loadMore(UserProfile from) {
         try {
             messagesHandler.loadNew();
+        }
+        catch (ConnectionException e) {
+            new Alert(ERROR, "Could not connect to the server.").show();
+            return;
+        } catch (ResponseException e) {
+            new Alert(ERROR, e.getMessage()).show();
+            return;
+        }
+        try {
             messagesHandler.loadOlder(from);
+        } catch (ResponseException e) {
+            if (e.getStatusCode() == 404)
+                new Alert(ERROR, "Can't find user " + from.getNameTag()).show();
+            return;
         } catch (NoSuchElementException ignore) {}
+
         messagesHandler.getConversation(from, 0).ifPresent(messages -> {
             final var items = messagesList.getItems();
             if (items.stream().anyMatch(message -> !messages.getElements().contains(message))) {
@@ -159,7 +175,16 @@ public class MessagesView implements Initializable {
     protected void sendMessage(@SuppressWarnings("unused") ActionEvent __) {
         final String value = getTypedText();
         final var msg = createMessage(value);
-        messagesHandler.sendMessage(msg);
+        try {
+            messagesHandler.sendMessage(msg);
+        } catch (ResponseException e) {
+            if (e.getStatusCode() == 404)
+                new Alert(ERROR, "Can't find user " + recipientProfile.get().getNameTag()).show();
+            return;
+        } catch (ConnectionException e) {
+            new Alert(ERROR, "Could not connect to the server.").show();
+            return;
+        }
         addMessage(msg);
     }
 
