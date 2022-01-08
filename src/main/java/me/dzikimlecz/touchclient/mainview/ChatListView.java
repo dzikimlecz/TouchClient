@@ -1,14 +1,12 @@
 package me.dzikimlecz.touchclient.mainview;
 
 import javafx.beans.property.ReadOnlyObjectProperty;
-import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
-import me.dzikimlecz.touchclient.model.ProfilesCache;
 import me.dzikimlecz.touchclient.model.UserProfile;
 
 import java.net.URL;
@@ -56,5 +54,9 @@ public class ChatListView implements Initializable {
 
     public void addProfiles(Collection<UserProfile> profile) {
         list.getItems().addAll(profile);
+    }
+
+    public void select(UserProfile profile) {
+        list.getSelectionModel().select(profile);
     }
 }
