@@ -7,6 +7,7 @@ import coresearch.cvurl.io.mapper.MapperFactory;
 import coresearch.cvurl.io.model.CVurlConfig;
 import coresearch.cvurl.io.request.CVurl;
 import me.dzikimlecz.touchclient.mainview.ConnectionException;
+import me.dzikimlecz.touchclient.mainview.ResponseException;
 import me.dzikimlecz.touchclient.model.container.Messages;
 import org.jetbrains.annotations.NotNull;
 
@@ -133,10 +134,10 @@ public final class MessagesHandler  {
         final var status = cVurl.post(getEnv("server address") + "/msg")
                 .body(message)
                 .asString()
-                .orElseThrow(() -> new ConnectionException("Could not send the message."))
+                .orElseThrow(ConnectionException::new)
                 .status();
         if (status < 200 || status >= 300)
-            throw new ConnectionException("Sending failure. Code " + status);
+            throw new ResponseException("Sending failure", status);
     }
 
 
@@ -214,15 +215,7 @@ public final class MessagesHandler  {
     private Messages fetchNew() {
         final var url = format("%s/msg/%s?page=%d&size=%d",
                 getEnv("server address"), getUserProfile().getUriNameTag(), 0, loadAtOnce);
-        var response = cVurl.get(url)
-                .asString()
-                .orElseThrow(ConnectionException::new)
-                .getBody();
-        try {
-            return objectMapper.readValue(response, Messages.class);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
+        return getMessages(url);
     }
 
     private Messages fetch(@NotNull MessageRequestSpecification request) {
@@ -233,12 +226,18 @@ public final class MessagesHandler  {
                 request.getPage(),
                 request.getSize()
         );
+        return getMessages(url);
+    }
+
+    private Messages getMessages(String url) {
         var response = cVurl.get(url)
                 .asString()
-                .orElseThrow(ConnectionException::new)
-                .getBody();
+                .orElseThrow(ConnectionException::new);
+        final var status = response.status();
+        if (status != 200)
+            throw new ResponseException("Sending failure.", status);
         try {
-            return objectMapper.readValue(response, Messages.class);
+            return objectMapper.readValue(response.getBody(), Messages.class);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
