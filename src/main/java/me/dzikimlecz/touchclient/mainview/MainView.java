@@ -1,26 +1,37 @@
 package me.dzikimlecz.touchclient.mainview;
 
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.Parent;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import javafx.util.Pair;
 import me.dzikimlecz.touchclient.model.MessagesHandler;
+import me.dzikimlecz.touchclient.model.ProfilesCache;
 import me.dzikimlecz.touchclient.model.UserProfile;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.*;
+import java.util.ResourceBundle;
 
 import static java.util.Objects.requireNonNull;
+import static me.dzikimlecz.touchclient.model.UserProfile.getUsername;
+import static me.dzikimlecz.touchclient.model.UserProfile.parseTag;
 
 public class MainView implements Initializable {
 
     @FXML
     public BorderPane root;
+    @FXML
+    public BorderPane usersPane;
+    @FXML
+    public TextField newMessageField;
+
+    private ChatListView chatList;
 
     @NotNull
     public static Parent create() throws Exception {
@@ -37,10 +48,10 @@ public class MainView implements Initializable {
         messagesViewController.setUserProfile(getUserProfile());
         final Pair<Node, ChatListView> chatList =
                 loadAndGetController("chatlist-view.fxml");
-        final var chatListController = chatList.getValue();
-        root.setLeft(chatList.getKey());
+        this.chatList = chatList.getValue();
+        usersPane.setCenter(chatList.getKey());
         messagesViewController.recipientProfileProperty()
-                .bind(chatListController.selectedItemProperty());
+                .bind(this.chatList.selectedItemProperty());
     }
 
     @NotNull
@@ -61,5 +72,15 @@ public class MainView implements Initializable {
         if (controller == null)
             throw new IllegalStateException(resource + " controller must not be null");
         return new Pair<>(node, controller);
+    }
+
+    @FXML
+    protected void toNewUser(@SuppressWarnings("unused") ActionEvent __) {
+        final var text = newMessageField.getText().trim();
+        final var strings = text.split("#");
+        final var profile = UserProfile.of(getUsername(strings), parseTag(strings[1]));
+        ProfilesCache.cacheUser(profile);
+        chatList.addProfile(profile);
+        chatList.select(profile);
     }
 }
