@@ -7,7 +7,6 @@ import coresearch.cvurl.io.mapper.MapperFactory;
 import coresearch.cvurl.io.model.CVurlConfig;
 import coresearch.cvurl.io.request.CVurl;
 import me.dzikimlecz.touchclient.model.Message;
-import me.dzikimlecz.touchclient.model.ProfilesCache;
 import me.dzikimlecz.touchclient.model.UserProfile;
 import me.dzikimlecz.touchclient.model.container.Messages;
 import org.jetbrains.annotations.NotNull;

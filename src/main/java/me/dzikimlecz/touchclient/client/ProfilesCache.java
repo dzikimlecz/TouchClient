@@ -1,5 +1,6 @@
-package me.dzikimlecz.touchclient.model;
+package me.dzikimlecz.touchclient.client;
 
+import me.dzikimlecz.touchclient.model.UserProfile;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
