@@ -14,6 +14,7 @@ module me.dzikimlecz.touchclient {
     requires com.fasterxml.jackson.datatype.jsr310;
 
     exports me.dzikimlecz.touchclient;
+    exports me.dzikimlecz.touchclient.model;
     opens me.dzikimlecz.touchclient.mainview to javafx.fxml;
     opens me.dzikimlecz.touchclient.model to  com.fasterxml.jackson.databind;
     opens me.dzikimlecz.touchclient.model.container to com.fasterxml.jackson.databind;
