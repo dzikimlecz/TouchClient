@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<?import javafx.geometry.Insets?>
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="me.dzikimlecz.touchclient.mainview.LoginView"
+            prefHeight="400.0" prefWidth="600.0">
+    <left>
+        <TextField promptText="name#tag" fx:id="usernameField">
+            <BorderPane.margin>
+                <Insets top="200" left="300"/>
+            </BorderPane.margin>
+        </TextField>
+    </left>
+    <right>
+        <Button text="OK" onAction="#onApproved">
+            <BorderPane.margin>
+                <Insets top="200" right="300"/>
+            </BorderPane.margin>
+        </Button>
+    </right>
+</BorderPane>
