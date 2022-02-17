@@ -4,7 +4,6 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
-import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Alert;
 import javafx.scene.control.TextField;
@@ -14,13 +13,13 @@ import me.dzikimlecz.touchclient.client.ServerHandler;
 import me.dzikimlecz.touchclient.model.UserProfile;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
 
 import static java.util.Objects.requireNonNull;
 import static javafx.scene.control.Alert.AlertType.WARNING;
-import static me.dzikimlecz.touchclient.model.ProfilesCache.cacheUser;
+import static me.dzikimlecz.touchclient.TouchApp.loadAndGetController;
+import static me.dzikimlecz.touchclient.client.ProfilesCache.cacheUser;
 import static me.dzikimlecz.touchclient.model.UserProfile.getUsername;
 import static me.dzikimlecz.touchclient.model.UserProfile.parseTag;
 
@@ -32,6 +31,7 @@ public class MainView implements Initializable {
     public BorderPane usersPane;
     @FXML
     public TextField newMessageField;
+    private UserProfile userProfile;
 
     private ChatListView chatList;
     private final ServerHandler serverHandler = new ServerHandler(getUserProfile());
@@ -43,13 +43,13 @@ public class MainView implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        final Pair<Node, MessagesView> messagesView =
+        final Pair<Parent, MessagesView> messagesView =
                 loadAndGetController("messages-view.fxml");
         var messagesViewController = messagesView.getValue();
         messagesViewController.setServerHandler(serverHandler);
         root.setCenter(messagesView.getKey());
         messagesViewController.setUserProfile(getUserProfile());
-        final Pair<Node, ChatListView> chatList =
+        final Pair<Parent, ChatListView> chatList =
                 loadAndGetController("chatlist-view.fxml");
         this.chatList = chatList.getValue();
         usersPane.setCenter(chatList.getKey());
@@ -57,25 +57,7 @@ public class MainView implements Initializable {
                 .bind(this.chatList.selectedItemProperty());
     }
 
-    @NotNull
-    private UserProfile getUserProfile() {
-        return UserProfile.of("NeverSeenCatOOO", 5318008);
-    }
 
-    @NotNull
-    private <T> Pair<Node, T> loadAndGetController(String resource) {
-        final var loader = new FXMLLoader(getClass().getResource(resource));
-        final Node node;
-        try {
-            node = loader.load();
-        } catch (IOException e) {
-            throw new IllegalStateException(e);
-        }
-        final T controller = loader.getController();
-        if (controller == null)
-            throw new IllegalStateException(resource + " controller must not be null");
-        return new Pair<>(node, controller);
-    }
 
     @FXML
     protected void toNewUser(@SuppressWarnings("unused") ActionEvent __) {
@@ -88,5 +70,13 @@ public class MainView implements Initializable {
             chatList.addProfile(profile);
             chatList.select(profile);
         } else new Alert(WARNING, "Can't find user " + profile.getNameTag()).show();
+    }
+
+    public UserProfile getUserProfile() {
+        return userProfile;
+    }
+
+    public void setUserProfile(UserProfile userProfile) {
+        this.userProfile = userProfile;
     }
 }
