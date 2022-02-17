@@ -14,7 +14,7 @@ import java.util.Collection;
 import java.util.ResourceBundle;
 
 import static javafx.collections.FXCollections.observableArrayList;
-import static me.dzikimlecz.touchclient.model.ProfilesCache.getProfiles;
+import static me.dzikimlecz.touchclient.client.ProfilesCache.getProfiles;
 
 public class ChatListView implements Initializable {
     @FXML
